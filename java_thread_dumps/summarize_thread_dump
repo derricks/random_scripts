@@ -1,0 +1,77 @@
+function find_first_non_java_line() {
+   # gobble lines until a) one doesn't start with java. or b) you run into a blank line
+   do {
+      getline next_line
+      if(next_line !~ /java\.|sun\./) {
+         return next_line
+      }
+   } while(next_line !~ /^$/)
+   return 0
+}
+
+function add_non_java(line) {
+   if (line) {
+      activeThreads[line]++
+   }
+}
+
+function find_and_add_first_non_java() {
+   line = find_first_non_java_line()
+   add_non_java(line)
+}
+
+# summarize thread dumps via awk
+/state = BLOCKED|java\.lang\.Thread\.State: BLOCKED/ {
+    thread_states["BLOCKED"]++
+    
+    find_and_add_first_non_java()
+}
+/state = TIMED_WAITING|java\.lang\.Thread\.State: TIMED_WAITING/ {
+    thread_states["TIMED_WAITING"]++
+    find_and_add_first_non_java()    
+}
+/state = WAITING|java\.lang\.Thread\.State: WAITING/ {
+    thread_states["WAITING"]++
+    find_and_add_first_non_java()
+}
+/state = RUNNABLE|java\.lang\.Thread\.State: RUNNABLE/ {
+    thread_states["RUNNABLE"]++
+    find_and_add_first_non_java()
+}
+
+END {
+   for (state in thread_states) {
+      print "Threads in",(state ":"),thread_states[state]
+   }
+
+   # pipe activeThreads to sort
+   tmpFile = "tdTemp"
+   sortCmd = "sort -nr > tdTemp" 
+   
+   for (line in activeThreads) {
+      # print with field value first to make it easier for sort to work
+      print activeThreads[line] "\t" line | sortCmd
+   }
+   close(sortCmd)
+   
+   print ""  
+   print "Summary of first non-java code in threads"
+
+   # read back in the sorted list
+   while((getline curline < tmpFile) > 0) {
+      split(curline,fields,"\t")
+      
+      # handle different formats
+      count = fields[1]
+      if(fields[2]) {
+         codeLine = fields[2]
+      } else {
+         codeLine = fields[3] # because of leading white space
+      }
+      
+      print codeLine "\t" count
+   }
+   close(tmpFile)
+   
+   system(("rm " tmpFile))
+}

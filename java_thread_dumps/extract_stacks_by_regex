@@ -1,0 +1,19 @@
+# extracts bits of a thread dump based on a passed in regex
+# usage: awk -f extract_stacks_by_regex -v regex=[regex] [file]
+
+# lines with stuff when we've established we're in a stack dump that matches the regex
+$0 ~ /^..*$/ && matches == 1 {
+   print
+}
+
+# lines with stuff when we haven't yet found a match: build up current stack and check to see if this is a match
+$0 ~ /^..*$/ && matches == 0 {
+   current_stack = current_stack "\n" $0
+   if ($0 ~ regex) {
+      matches = 1
+      print current_stack
+   }
+}
+
+# lines without stuff: reset 
+/^$/ {matches = 0;current_stack = ""}
