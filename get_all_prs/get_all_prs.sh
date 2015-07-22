@@ -1,6 +1,12 @@
 #!/bin/bash
 
-# Various commands to query the number of PRs for a given repo or repos within an org
+if [[ $# -eq 0 ]]
+then
+  echo "Usage: get_all_prs.sh [org|repo]"
+  exit 1
+fi
+
+# build up query for github
 GH_QUERY="type:pr state:open"
 
 for query_term in "$@"
