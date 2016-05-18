@@ -18,12 +18,11 @@ _remotes_in_repo() {
 }
 
 _git_complete() {
-  # git sub commands, the case where the previous
-  # word ("git") equals the command
-
   # simple trick for seeing which commands might need remotes after them
   remote_complete_commands=(push pull fetch rebase)
 
+  # git sub commands, the case where the previous
+  # word ("git") equals the command
   if [[ $3 == $1 ]];
   then
     COMPREPLY=( $(git | awk -v regex="^ +[a-z]" '$0 ~ regex {print $1}' | grep "^$2") )
