@@ -25,7 +25,7 @@ _git_complete() {
   # word ("git") equals the command
   if [[ $3 == $1 ]];
   then
-    COMPREPLY=( $(git | awk -v regex="^ +[a-z]" '$0 ~ regex {print $1}' | grep "^$2") )
+    COMPREPLY=( $(git help -a | awk 'NF >= 1 {print $1; print $2}' | grep "^$2") )
   elif [[ $3 == "checkout" ]];
     then
       _branches_in_repo $1 $2 $3
