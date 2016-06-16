@@ -36,3 +36,15 @@ _git_complete() {
 }
 
 complete -o bashdefault -o default -F _git_complete git
+
+_vagrant_complete() {
+
+  # vagrant sub commands, the case where the previous
+  # word ("vagrant") equals the command
+  if [[ $3 == $1 ]];
+  then
+    COMPREPLY=( $(vagrant list-commands | awk 'NF > 0 {print $1}' | grep "^$2") )
+  fi
+}
+
+complete -o bashdefault -o default -F _vagrant_complete vagrant
